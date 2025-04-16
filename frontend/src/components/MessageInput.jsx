@@ -1,8 +1,8 @@
-import { useRef, useState } from "react";
 import { useChatStore } from "../store/useChatStore";
 import { Image, Send, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { Smile } from 'lucide-react';
+import React, { useEffect, useState, useRef } from 'react';
 
 const EmojiPicker = ({ onSelect }) => {
   const emojis = [// Smileys and People
@@ -30,25 +30,27 @@ const MessageInput = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const { sendMessage } = useChatStore();
   const emojiRef=useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (emojiRef.current && !emojiRef.current.contains(event.target)) {
+        setShowEmojiPicker(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+  const handleEmojiSelect = (emoji) => {
+    setText((prev) => prev + emoji);
+    setShowEmojiPicker(false);
+  };
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file.type.startsWith("image/")) {
       toast.error("Please select an image file");
       return;
     }
-    useEffect(() => {
-      const handleClickOutside = (event) => {
-        if (emojiRef.current && !emojiRef.current.contains(event.target)) {
-          setShowEmojiPicker(false);
-        }
-      };
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-    const handleEmojiSelect = (emoji) => {
-      setText((prev) => prev + emoji);
-      setShowEmojiPicker(false);
-    };
+    
     const reader = new FileReader();
     reader.onloadend = () => {
       setImagePreview(reader.result);
